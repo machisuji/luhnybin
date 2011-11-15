@@ -1,14 +1,11 @@
 object Masker {
   def digits(chrs: Seq[Char]): Seq[Int] = chrs.map(_ - 48)
-  def digits(str: String): Seq[Int] = digits(str.toSeq)
 
   def luhnCheck(digits: Seq[Int]): Boolean = {
     digits.reverse.zipWithIndex.map { case (digit, index) =>
-      if (index % 2 == 1) digit * 2
-      else digit
+      if (index % 2 == 1) digit * 2 else digit
     }.flatMap { num =>
-      if (num < 10) Seq(num)
-      else Seq(1, num % 10)
+      if (num < 10) Seq(num) else Seq(1, num % 10)
     }.sum % 10 == 0
   }
 
@@ -37,10 +34,6 @@ object Masker {
   def maskCC(str: String): String = maskCC("", Seq(), str)
 }
 
-object mask extends App {
-  val reader = new java.io.BufferedReader(new java.io.InputStreamReader(System.in))
-  Iterator.continually(reader.readLine).takeWhile(null ne).foreach(line =>
-    println(Masker.maskCC(line)))
-}
-
-mask main Array()
+val in = new java.io.BufferedReader(new java.io.InputStreamReader(System.in))
+Iterator.continually(in.readLine).takeWhile(null ne).foreach(line =>
+  println(Masker maskCC line))
