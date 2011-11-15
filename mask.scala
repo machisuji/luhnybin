@@ -22,11 +22,11 @@ object Masker {
   @scala.annotation.tailrec
   def maskCC(prefix: String, number: Seq[Char], suffix: String): String = {
     val numDigits = number.filter(_.isDigit).size
-    if (checkCC(number) && (numDigits == 16 || !suffix.headOption.exists(isCCDigit))) {
-      return maskCC(prefix ++ number.map(chr => if (chr.isDigit) 'X' else chr) ++ suffix)
-    } else if (suffix.isEmpty) {
-      return prefix ++ number
-    }
+    val hit = checkCC(number) && (numDigits == 16 || !suffix.headOption.exists(isCCDigit))
+
+    if (hit)                  return maskCC(prefix ++ number.map(chr => if (chr.isDigit) 'X' else chr) ++ suffix)
+    else if (suffix.isEmpty)  return prefix ++ number
+
     val chr = suffix.head
 
     if (numDigits >= 16)      maskCC(prefix :+ number.head,     number.tail,    suffix)
