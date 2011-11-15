@@ -29,9 +29,9 @@ object Masker {
     }
     val chr = suffix.head
 
-    if (numDigits >= 16)      maskCC(prefix :+ number.head, number.tail, suffix)
-    else if (isCCDigit(chr))  maskCC(prefix, number :+ chr, suffix.tail)
-    else                      maskCC((prefix ++ number) :+ chr, Seq(), suffix.tail)
+    if (numDigits >= 16)      maskCC(prefix :+ number.head,     number.tail,    suffix)
+    else if (isCCDigit(chr))  maskCC(prefix,                    number :+ chr,  suffix.tail)
+    else                      maskCC(prefix ++ number :+ chr,   Seq(),          suffix.tail)
   }
 
   def maskCC(str: String): String = maskCC("", Seq(), str)
