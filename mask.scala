@@ -24,7 +24,7 @@ object Masker {
     val numDigits = number.filter(_.isDigit).size
     val hit = checkCC(number) && (numDigits == 16 || !suffix.headOption.exists(isCCDigit))
 
-    if (hit)                  return maskCC(prefix ++ number.map(chr => if (chr.isDigit) 'X' else chr) ++ suffix)
+    if (hit)                  return prefix ++ number.map(chr => if (chr.isDigit) 'X' else chr) ++ maskCC(suffix)
     else if (suffix.isEmpty)  return prefix ++ number
 
     val chr = suffix.head
