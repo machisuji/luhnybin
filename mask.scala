@@ -20,7 +20,7 @@ object Masker {
   def isCCDigit(chr: Char) = chr.isDigit || chr == '-' || chr == ' '
 
   @scala.annotation.tailrec
-  def maskCC(prefix: String, number: Seq[Char], suffix: String, previousWasDigit: Boolean): String = {
+  def maskCC(prefix: String, number: Seq[Char], suffix: String): String = {
     val numDigits = number.filter(_.isDigit).size
     if (checkCC(number) && (numDigits == 16 || !suffix.headOption.exists(isCCDigit))) {
       return maskCC(prefix ++ number.map(chr => if (chr.isDigit) 'X' else chr) ++ suffix)
@@ -29,13 +29,12 @@ object Masker {
     }
     val chr = suffix.head
 
-    if (numDigits >= 16)                          maskCC(prefix :+ number.head, number.tail, suffix, previousWasDigit)
-    else if (previousWasDigit && isCCDigit(chr))  maskCC(prefix, number :+ chr, suffix.tail, true)
-    else if (!previousWasDigit && isCCDigit(chr)) maskCC(prefix, Seq(chr), suffix.tail, true)
-    else                                          maskCC((prefix ++ number) :+ chr, Seq(), suffix.tail, false)
+    if (numDigits >= 16)      maskCC(prefix :+ number.head, number.tail, suffix)
+    else if (isCCDigit(chr))  maskCC(prefix, number :+ chr, suffix.tail)
+    else                      maskCC((prefix ++ number) :+ chr, Seq(), suffix.tail)
   }
 
-  def maskCC(str: String): String = maskCC("", Seq(), str, false)
+  def maskCC(str: String): String = maskCC("", Seq(), str)
 }
 
 object mask extends App {
