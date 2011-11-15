@@ -29,7 +29,7 @@ object Masker {
     }
     val chr = suffix.head
 
-    if (numDigits >= 16)                          maskCC(prefix :+ number.head, number.tail, suffix, true)
+    if (numDigits >= 16)                          maskCC(prefix :+ number.head, number.tail, suffix, previousWasDigit)
     else if (previousWasDigit && isCCDigit(chr))  maskCC(prefix, number :+ chr, suffix.tail, true)
     else if (!previousWasDigit && isCCDigit(chr)) maskCC(prefix, Seq(chr), suffix.tail, true)
     else                                          maskCC((prefix ++ number) :+ chr, Seq(), suffix.tail, false)
