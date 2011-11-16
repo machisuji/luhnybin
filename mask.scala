@@ -17,21 +17,24 @@ object Masker {
   def isCCDigit(chr: Char) = chr.isDigit || chr == '-' || chr == ' '
 
   @scala.annotation.tailrec
-  def maskCC(prefix: String, number: Seq[Char], suffix: String): String = {
+  def maskCC(prefix: String, number: String, suffix: String, lastHit: Option[(String, String)]): String = {
     val numDigits = number.filter(_.isDigit).size
-    val hit = checkCC(number) && (numDigits == 16 || !suffix.headOption.exists(isCCDigit))
+    val hit = (if (checkCC(number)) Some(number -> suffix.take(16 - numDigits)) else None) orElse lastHit
 
-    if (hit)                  return prefix ++ number.map(chr => if (chr.isDigit) 'X' else chr) ++ maskCC(suffix)
-    else if (suffix.isEmpty)  return prefix ++ number
-
+    if (hit.isDefined && (numDigits >= 16 || suffix.isEmpty)) {
+      val (num, peek) = hit.get
+      return prefix ++ num.map(chr => if (chr.isDigit) 'X' else chr) ++ maskCC(peek ++ suffix)
+    } else if (suffix.isEmpty) {
+      return prefix ++ number
+    }
     val chr = suffix.head
 
-    if (numDigits >= 16)      maskCC(prefix :+ number.head,     number.tail,    suffix)
-    else if (isCCDigit(chr))  maskCC(prefix,                    number :+ chr,  suffix.tail)
-    else                      maskCC(prefix ++ number :+ chr,   Seq(),          suffix.tail)
+    if (numDigits >= 16)      maskCC(prefix :+ number.head,     number.tail,    suffix,       None)
+    else if (isCCDigit(chr))  maskCC(prefix,                    number :+ chr,  suffix.tail,  hit)
+    else                      maskCC(prefix ++ number :+ chr,   "",             suffix.tail,  None)
   }
 
-  def maskCC(str: String): String = maskCC("", Seq(), str)
+  def maskCC(str: String): String = maskCC("", "", str, None)
 }
 
 val in = new java.io.BufferedReader(new java.io.InputStreamReader(System.in))
