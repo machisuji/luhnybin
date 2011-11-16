@@ -1,5 +1,6 @@
 object Masker {
-  def digits(chrs: Seq[Char]): Seq[Int] = chrs.map(_ - 48)
+  val (minDigits, maxDigits) = (14, 16)
+  def digits(chrs: Seq[Char]): Seq[Int] = chrs.map(_ - '0')
 
   def luhnCheck(digits: Seq[Int]): Boolean = {
     digits.reverse.zipWithIndex.map { case (digit, index) =>
@@ -11,7 +12,7 @@ object Masker {
 
   def checkCC(number: Seq[Char]): Boolean = {
     val ds = digits(number.filter(_.isDigit))
-    ds.size >= 14 && ds.size <= 16 && luhnCheck(ds)
+    ds.size >= minDigits && ds.size <= maxDigits && luhnCheck(ds)
   }
 
   def isCCDigit(chr: Char) = chr.isDigit || chr == '-' || chr == ' '
@@ -19,9 +20,9 @@ object Masker {
   @scala.annotation.tailrec
   def maskCC(prefix: String, number: String, suffix: String, lastHit: Option[(String, String)]): String = {
     val numDigits = number.filter(_.isDigit).size
-    val hit = (if (checkCC(number)) Some(number -> suffix.take(16 - numDigits)) else None) orElse lastHit
+    val hit = (if (checkCC(number)) Some(number -> suffix.take(maxDigits - numDigits)) else None) orElse lastHit
 
-    if (hit.isDefined && (numDigits >= 16 || suffix.isEmpty)) {
+    if (hit.isDefined && (numDigits >= maxDigits || suffix.isEmpty)) {
       val (num, peek) = hit.get
       return prefix ++ num.map(chr => if (chr.isDigit) 'X' else chr) ++ maskCC(peek ++ suffix)
     } else if (suffix.isEmpty) {
@@ -29,14 +30,13 @@ object Masker {
     }
     val chr = suffix.head
 
-    if (numDigits >= 16)      maskCC(prefix :+ number.head,     number.tail,    suffix,       None)
-    else if (isCCDigit(chr))  maskCC(prefix,                    number :+ chr,  suffix.tail,  hit)
-    else                      maskCC(prefix ++ number :+ chr,   "",             suffix.tail,  None)
+    if (numDigits >= maxDigits) maskCC(prefix :+ number.head,     number.tail,    suffix,       None)
+    else if (isCCDigit(chr))    maskCC(prefix,                    number :+ chr,  suffix.tail,  hit)
+    else                        maskCC(prefix ++ number :+ chr,   "",             suffix.tail,  None)
   }
 
   def maskCC(str: String): String = maskCC("", "", str, None)
 }
 
 val in = new java.io.BufferedReader(new java.io.InputStreamReader(System.in))
-Iterator.continually(in.readLine).takeWhile(null ne).foreach(line =>
-  println(Masker maskCC line))
+Iterator.continually(in.readLine).takeWhile(null ne).foreach(line => println(Masker maskCC line))
