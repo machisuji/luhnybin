@@ -30,9 +30,9 @@ object Masker {
     }
     val chr = suffix.head
 
-    if (numDigits >= maxDigits) maskCC(prefix :+ number.head,     number.tail,    suffix,       None)
-    else if (isCCDigit(chr))    maskCC(prefix,                    number :+ chr,  suffix.tail,  hit)
-    else                        maskCC(prefix ++ number :+ chr,   "",             suffix.tail,  None)
+    if (numDigits >= maxDigits) maskCC(prefix :+ number.head,     "",             number.tail ++ suffix,  None)
+    else if (isCCDigit(chr))    maskCC(prefix,                    number :+ chr,  suffix.tail,            hit)
+    else                        maskCC(prefix ++ number :+ chr,   "",             suffix.tail,            None)
   }
 
   def maskCC(str: String): String = maskCC("", "", str, None)
