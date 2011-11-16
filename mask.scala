@@ -24,15 +24,17 @@ object Masker {
 
     if (hit.isDefined && (numDigits >= maxDigits || suffix.isEmpty)) {
       val (num, peek) = hit.get
+      printf("%-25s - %2d (hit: %s)\n", number, numDigits, num)
       return prefix ++ num.map(chr => if (chr.isDigit) 'X' else chr) ++ maskCC(peek ++ suffix)
     } else if (suffix.isEmpty) {
       return prefix ++ number
     }
     val chr = suffix.head
-
-    if (numDigits >= maxDigits) maskCC(prefix :+ number.head,     number.tail,    suffix,       None)
-    else if (isCCDigit(chr))    maskCC(prefix,                    number :+ chr,  suffix.tail,  hit)
-    else                        maskCC(prefix ++ number :+ chr,   "",             suffix.tail,  None)
+    if (!hit.isDefined) printf("%-25s - %2d\n", number, numDigits)
+    else printf("%-25s - %2d (hit: %s)\n", number, numDigits, hit.get._1)
+    if (numDigits >= maxDigits) maskCC(prefix :+ number.head,   "",             number.tail ++ suffix,  None)
+    else if (isCCDigit(chr))    maskCC(prefix,                  number :+ chr,  suffix.tail,            hit)
+    else                        maskCC(prefix ++ number :+ chr, "",             suffix.tail,            None)
   }
 
   def maskCC(str: String): String = maskCC("", "", str, None)
