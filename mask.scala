@@ -1,6 +1,5 @@
 object Masker {
   val (minDigits, maxDigits) = (14, 16)
-  def digits(chrs: Seq[Char]): Seq[Int] = chrs.map(_ - '0')
 
   def luhnCheck(digits: Seq[Int]): Boolean = {
     digits.reverse.zipWithIndex.map { case (digit, index) =>
@@ -11,7 +10,7 @@ object Masker {
   }
 
   def checkCC(number: Seq[Char]): Boolean = {
-    val ds = digits(number.filter(_.isDigit))
+    val ds = number.filter(_.isDigit).map(_ - '0')
     ds.size >= minDigits && ds.size <= maxDigits && luhnCheck(ds)
   }
 
