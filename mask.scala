@@ -1,6 +1,5 @@
 object Masker {
   val (minDigits, maxDigits) = (14, 16)
-  def digits(chrs: Seq[Char]): Seq[Int] = chrs.map(_ - '0')
 
   def luhnCheck(digits: Seq[Int]): Boolean = {
     digits.reverse.zipWithIndex.map { case (digit, index) =>
@@ -9,36 +8,24 @@ object Masker {
       if (num < 10) Seq(num) else Seq(1, num % 10)
     }.sum % 10 == 0
   }
-
   def checkCC(number: Seq[Char]): Boolean = {
-    val ds = digits(number.filter(_.isDigit))
+    val ds = number.filter(_.isDigit).map(_ - '0')
     ds.size >= minDigits && ds.size <= maxDigits && luhnCheck(ds)
   }
+  def startsWithDigit(str: String) = str.headOption.exists(_.isDigit)
+  def isCCDigit(chr: Char) = chr.isDigit || chr == '-' || chr.isWhitespace
 
-  def isCCDigit(chr: Char) = chr.isDigit || chr == '-' || chr == ' '
-
+  // @scala.annotation.tailrec
   @scala.annotation.tailrec
-  def maskCC(prefix: String, number: String, suffix: String, lastHit: Option[(String, String)]): String = {
-    val numDigits = number.filter(_.isDigit).size
-    val hit = (if (checkCC(number)) Some(number -> suffix.take(maxDigits - numDigits)) else None) orElse lastHit
-
-    if (hit.isDefined && (numDigits >= maxDigits || suffix.isEmpty)) {
-      val (num, peek) = hit.get
-      printf("%-25s - %2d (hit: %s)\n", number, numDigits, num)
-      return prefix ++ num.map(chr => if (chr.isDigit) 'X' else chr) ++ maskCC(peek ++ suffix)
-    } else if (suffix.isEmpty) {
-      return prefix ++ number
-    }
-    val chr = suffix.head
-    if (!hit.isDefined) printf("%-25s - %2d\n", number, numDigits)
-    else printf("%-25s - %2d (hit: %s)\n", number, numDigits, hit.get._1)
-    if (numDigits >= maxDigits) maskCC(prefix :+ number.head,   "",             number.tail ++ suffix,  None)
-    else if (isCCDigit(chr))    maskCC(prefix,                  number :+ chr,  suffix.tail,            hit)
-    else                        maskCC(prefix ++ number :+ chr, "",             suffix.tail,            None)
+  def split(parts: List[String], str: String, text: Boolean): List[String] = {
+    val (part, rest) = str.span(c => if (text) !c.isDigit else isCCDigit(c))
+    if (rest.isEmpty) (part :: parts).reverse
+    else split(part :: parts, rest, !text)
   }
+  def split(str: String): List[String] = split(Nil, str, !startsWithDigit(str))
 
-  def maskCC(str: String): String = maskCC("", "", str, None)
+  def mask(str: String): String = split(str).mkString(" | ")
 }
 
 val in = new java.io.BufferedReader(new java.io.InputStreamReader(System.in))
-Iterator.continually(in.readLine).takeWhile(null ne).foreach(line => println(Masker maskCC line))
+Iterator.continually(in.readLine).takeWhile(null ne).foreach(line => println(Masker mask line))
