@@ -8,10 +8,9 @@ object Masker {
       if (num < 10) Seq(num) else Seq(1, num % 10)
     }.sum % 10 == 0
   }
-  def checkCC(number: Seq[Char]): Int = {
+  def checkCC(number: Seq[Char], len: Int): Boolean = {
     val ds = number.filter(_.isDigit).map(_ - '0')
-    if (ds.size >= minDigits && ds.size <= maxDigits && luhnCheck(ds)) ds.size
-    else 0
+    ds.size == len && luhnCheck(ds)
   }
   def startsWithDigit(str: String) = str.headOption.exists(_.isDigit)
   def isCCDigit(chr: Char) = chr.isDigit || chr == '-' || chr.isWhitespace
@@ -27,10 +26,25 @@ object Masker {
   def split(str: String): List[String] = split(Nil, str, !startsWithDigit(str))
 
   def maskCC(str: String): String = {
-    
+    val num = str.filter(_.isDigit)
+    val is = (14 to 16).map(len => num.sliding(len, 1).zipWithIndex.flatMap { case (seq, index) =>
+      if (checkCC(seq, len)) Some(index until (index + len) toIndexedSeq) else None
+    }.fold(Nil)(_++_).distinct).fold(Nil)(_++_).distinct
+    val mi = num.zipWithIndex.map{case (c, i) => c -> (if (is contains i) true else false)}.toIterator
+    var pc: Option[(Char, Boolean)] = None
+    for (c <- str) yield {
+      pc = pc orElse (if (mi.hasNext) Some(mi.next) else None)
+      if (pc.isDefined) {
+        val (chr, mask) = pc.get
+        if (chr == c) {
+          pc = None
+          if (mask) 'X' else chr
+        } else c
+      } else c
+    }
   }
 
-  def mask(str: String): String = split(str).mkString(" | ")
+  def mask(str: String): String = split(str).mkString
 }
 
 val in = new java.io.BufferedReader(new java.io.InputStreamReader(System.in))
